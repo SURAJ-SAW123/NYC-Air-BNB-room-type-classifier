@@ -32,7 +32,7 @@
     "Staten Island": ["St. George", "Tompkinsville", "Stapleton"],
   };
 
-  const DEFAULT_API_BASE = "http://localhost:8000";
+  const DEFAULT_API_BASE = "https://nyc-air-bnb-room-type-classifier.onrender.com";
 
   /* ---------------------------------------------------------
      Elements
