@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Room Type Predictor — NYC Listings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="skyline" aria-hidden="true">
+  <svg viewBox="0 0 1440 160" preserveAspectRatio="none">
+    <path d="M0,160 L0,110 L20,110 L20,90 L45,90 L45,120 L70,120 L70,60 L95,60 L95,100 L120,100 L120,40 L150,40 L150,100 L175,100 L175,75 L200,75 L200,130 L230,130 L230,50 L255,50 L255,20 L280,20 L280,50 L305,50 L305,110 L335,110 L335,85 L360,85 L360,45 L390,45 L390,95 L415,95 L415,65 L440,65 L440,120 L470,120 L470,30 L500,30 L500,10 L525,10 L525,30 L550,30 L550,100 L580,100 L580,70 L610,70 L610,115 L635,115 L635,55 L660,55 L660,90 L690,90 L690,40 L720,40 L720,80 L750,80 L750,105 L780,105 L780,60 L805,60 L805,25 L830,25 L830,60 L855,60 L855,110 L885,110 L885,75 L915,75 L915,45 L940,45 L940,95 L965,95 L965,15 L990,15 L990,45 L1015,45 L1015,100 L1045,100 L1045,65 L1070,65 L1070,120 L1100,120 L1100,50 L1125,50 L1125,90 L1150,90 L1150,35 L1180,35 L1180,75 L1210,75 L1210,105 L1240,105 L1240,55 L1265,55 L1265,95 L1290,95 L1290,20 L1320,20 L1320,60 L1350,60 L1350,110 L1380,110 L1380,80 L1410,80 L1410,125 L1440,125 L1440,160 Z" fill="currentColor"/>
+  </svg>
+  <div class="scan-line"></div>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">RT</span>
+    <div class="brand-text">
+      <h1>Room&nbsp;Type Predictor</h1>
+      <p>NYC listing classifier · gradient pipeline</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="status-pill" id="statusPill" type="button" title="Check API connection">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Not connected</span>
+    </button>
+    <button class="icon-btn" id="settingsBtn" type="button" aria-label="API settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="settings-drawer" id="settingsDrawer">
+  <div class="settings-inner">
+    <label for="apiBaseInput">API base URL</label>
+    <div class="settings-row">
+      <input type="text" id="apiBaseInput" placeholder="http://localhost:8000" autocomplete="off" spellcheck="false">
+      <button id="apiBaseSave" type="button">Save</button>
+      <button id="apiBasePing" type="button" class="ghost">Test</button>
+    </div>
+    <p class="settings-hint">Points at your FastAPI <code>/predict</code> endpoint. Stored locally in this browser.</p>
+  </div>
+</div>
+
+<main class="layout">
+
+  <form class="panel form-panel" id="predictForm" novalidate>
+
+    <fieldset class="field-group">
+      <legend><span class="legend-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 22s-8-7.2-8-13a8 8 0 0 1 16 0c0 5.8-8 13-8 13Z"/><circle cx="12" cy="9" r="2.6"/></svg>
+      </span>Location</legend>
+
+      <div class="field-row two">
+        <div class="field">
+          <label for="latitude">Latitude</label>
+          <input type="number" id="latitude" name="latitude" step="0.000001" min="-90" max="90" placeholder="40.7128" required>
+          <span class="field-err" data-err="latitude"></span>
+        </div>
+        <div class="field">
+          <label for="longitude">Longitude</label>
+          <input type="number" id="longitude" name="longitude" step="0.000001" min="-180" max="180" placeholder="-74.0060" required>
+          <span class="field-err" data-err="longitude"></span>
+        </div>
+      </div>
+
+      <div class="field-row two">
+        <div class="field">
+          <label for="neighbourhood_group">Borough</label>
+          <select id="neighbourhood_group" name="neighbourhood_group" required>
+            <option value="" disabled selected>Select borough</option>
+            <option>Manhattan</option>
+            <option>Brooklyn</option>
+            <option>Queens</option>
+            <option>Bronx</option>
+            <option>Staten Island</option>
+          </select>
+          <span class="field-err" data-err="neighbourhood_group"></span>
+        </div>
+        <div class="field">
+          <label for="neighbourhood">Neighbourhood</label>
+          <input type="text" id="neighbourhood" name="neighbourhood" list="neighbourhoodList" placeholder="e.g. Williamsburg" required autocomplete="off">
+          <datalist id="neighbourhoodList"></datalist>
+          <span class="field-err" data-err="neighbourhood"></span>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="field-group">
+      <legend><span class="legend-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </span>Pricing &amp; stay length</legend>
+
+      <div class="field slider-field">
+        <div class="slider-label-row">
+          <label for="price">Price per night</label>
+          <output for="price" id="priceOut">$120</output>
+        </div>
+        <input type="range" id="price" name="price" min="10" max="1000" step="1" value="120" required>
+        <span class="field-err" data-err="price"></span>
+      </div>
+
+      <div class="field slider-field">
+        <div class="slider-label-row">
+          <label for="minimum_nights">Minimum nights</label>
+          <output for="minimum_nights" id="minNightsOut">3</output>
+        </div>
+        <input type="range" id="minimum_nights" name="minimum_nights" min="1" max="365" step="1" value="3" required>
+        <span class="field-err" data-err="minimum_nights"></span>
+      </div>
+    </fieldset>
+
+    <fieldset class="field-group">
+      <legend><span class="legend-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m12 17.3-6.2 3.6 1.6-7-5.4-4.7 7.1-.6L12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7Z"/></svg>
+      </span>Reviews &amp; engagement</legend>
+
+      <div class="field-row two">
+        <div class="field">
+          <label for="number_of_reviews">Total reviews</label>
+          <input type="number" id="number_of_reviews" name="number_of_reviews" min="0" step="1" placeholder="24" required>
+          <span class="field-err" data-err="number_of_reviews"></span>
+        </div>
+        <div class="field">
+          <label for="reviews_per_month">Reviews / month</label>
+          <input type="number" id="reviews_per_month" name="reviews_per_month" min="0" step="0.01" placeholder="1.4" required>
+          <span class="field-err" data-err="reviews_per_month"></span>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="field-group">
+      <legend><span class="legend-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M8 4v0M16 4v0"/></svg>
+      </span>Host &amp; availability</legend>
+
+      <div class="field">
+        <label for="calculated_host_listings_count">Host's listings count</label>
+        <input type="number" id="calculated_host_listings_count" name="calculated_host_listings_count" min="0" step="1" placeholder="1" required>
+        <span class="field-err" data-err="calculated_host_listings_count"></span>
+      </div>
+
+      <div class="field slider-field">
+        <div class="slider-label-row">
+          <label for="availability_365">Days available / year</label>
+          <output for="availability_365" id="availOut">180</output>
+        </div>
+        <input type="range" id="availability_365" name="availability_365" min="0" max="365" step="1" value="180" required>
+        <span class="field-err" data-err="availability_365"></span>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary" id="submitBtn">
+        <span class="btn-label">Run prediction</span>
+        <span class="btn-spinner" aria-hidden="true"></span>
+      </button>
+      <button type="button" class="btn-ghost" id="fillSampleBtn">Fill sample listing</button>
+      <button type="reset" class="btn-ghost" id="resetBtn">Reset</button>
+    </div>
+  </form>
+
+  <aside class="panel console-panel">
+    <div class="console-header">
+      <span class="console-title">Prediction console</span>
+      <div class="console-tabs">
+        <button class="tab-btn active" data-tab="result" type="button">Result</button>
+        <button class="tab-btn" data-tab="payload" type="button">Request JSON</button>
+      </div>
+    </div>
+
+    <div class="console-body">
+
+      <div class="tab-pane active" id="tab-result">
+        <div class="result-empty" id="resultEmpty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 19h16M6 15l3.5-4L13 14l5-6"/></svg>
+          <p>Fill in the listing details and run a prediction to see the model's output here.</p>
+        </div>
+
+        <div class="result-content" id="resultContent" hidden>
+          <div class="predicted-badge">
+            <span class="badge-label">Predicted room type</span>
+            <span class="badge-value" id="predictedLabel">—</span>
+          </div>
+
+          <div class="prob-list" id="probList"></div>
+
+          <button class="raw-toggle" id="rawToggle" type="button">View raw response</button>
+          <pre class="raw-json" id="rawJson" hidden></pre>
+        </div>
+
+        <div class="error-banner" id="errorBanner" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
+          <span id="errorText"></span>
+        </div>
+      </div>
+
+      <div class="tab-pane" id="tab-payload">
+        <pre class="payload-json" id="payloadJson"></pre>
+      </div>
+
+    </div>
+  </aside>
+
+</main>
+
+<footer class="page-footer">
+  <span>POST /predict · FastAPI + scikit-learn pipeline</span>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
